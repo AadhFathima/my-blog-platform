@@ -1,15 +1,87 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../app/generated/prisma"
+  output   = "./generated/client"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  author_id Int
+  post_id   Int
+  author    User     @relation(fields: [author_id], references: [id])
+  post      Post     @relation(fields: [post_id], references: [id])
+
+  @@index([author_id], map: "Comment_author_id_fkey")
+  @@index([post_id], map: "Comment_post_id_fkey")
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  post_id   Int
+  user_id   Int
+  post      Post     @relation(fields: [post_id], references: [id])
+  user      User     @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, post_id], map: "Like_user_id_post_id_key")
+  @@index([post_id], map: "Like_post_id_fkey")
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  slug      String   @unique(map: "Post_slug_key")
+  image     String?
+  tags      Json
+  category  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  author_id Int
+  published Boolean  @default(false)
+  author    User     @relation(fields: [author_id], references: [id])
+  comments  Comment[]
+  likes     Like[]
+  saved     SavedPost[]
+
+  @@index([author_id], map: "Post_author_id_fkey")
+}
+
+model SavedPost {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  post_id   Int
+  user_id   Int
+  post      Post     @relation(fields: [post_id], references: [id])
+  user      User     @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, post_id], map: "SavedPost_user_id_post_id_key")
+  @@index([post_id], map: "SavedPost_post_id_fkey")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String?
+  email     String    @unique(map: "User_email_key")
+  role      user_role @default(READER)
+  createdAt DateTime  @default(now())
+  password  String?
+  updatedAt DateTime
+  posts     Post[]
+  comments  Comment[]
+  likes     Like[]
+  saved     SavedPost[]
+}
+
+enum user_role {
+  ADMIN
+  EDITOR
+  READER
 }
