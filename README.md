@@ -49,3 +49,51 @@ API Endpoints
     Access: Requires authentication.
     Response: Redirects to the post page (handled client-side).
 
+
+Database Overview
+1. User Model
+Represents platform users with authentication capabilities
+Fields: id, name, email, role, password, timestamps
+Relationships:
+One-to-many with Post (author relationship)
+One-to-many with Comment
+One-to-many with Like
+One-to-many with SavedPost
+Roles: ADMIN, EDITOR, READER (enum)
+
+2. Post Model
+Represents blog posts/articles
+Fields: id, title, content, slug (unique), optional image, tags (JSON), category, timestamps, published status
+Relationships:
+Many-to-one with User (author)
+One-to-many with Comment
+One-to-many with Like
+One-to-many with SavedPost
+
+3. Comment Model
+Represents user comments on posts
+Fields: id, content, timestamps
+Relationships:
+Many-to-one with User (author)
+Many-to-one with Post
+
+4. Like Model
+Represents user likes on posts
+Fields: id, timestamp
+Relationships:
+Many-to-one with User
+Many-to-one with Post
+Unique constraint: A user can like a post only once (user_id + post_id unique combination)
+
+5. SavedPost Model
+Represents posts saved by users for later reading
+Fields: id, timestamp
+Relationships:
+Many-to-one with User
+Many-to-one with Post
+Unique constraint: A user can save a post only once (user_id + post_id unique combination)
+
+##Getiing Started 
+Run npm run dev for the development server.
+Ensure the database is running and environment variables are set.
+
